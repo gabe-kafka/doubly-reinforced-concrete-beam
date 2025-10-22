@@ -259,10 +259,10 @@ col_left, col_right = st.columns(2)
 with col_left:
     col1, col2 = st.columns(2)
     with col1:
-        b = st.number_input("b (in)", min_value=1.0, value=12.0, step=0.5, key='b_input')
+        b = st.number_input("b (in)", min_value=1.0, value=36.0, step=0.5, key='b_input')
         fc = st.number_input("f'c (ksi)", min_value=1.0, value=5.0, step=0.5, key='fc_input')
     with col2:
-        h = st.number_input("h (in)", min_value=1.0, value=20.0, step=0.5, key='h_input')
+        h = st.number_input("h (in)", min_value=1.0, value=62.0, step=0.5, key='h_input')
         fy = st.number_input("fy (ksi)", min_value=1.0, value=60.0, step=5.0, key='fy_input')
 
     col_cover1, col_cover2, col_cover3 = st.columns(3)
@@ -273,16 +273,19 @@ with col_left:
     with col_cover3:
         side_cover = st.number_input("side clr", min_value=0.0, value=1.5, step=0.25, key='side_cover')
 
+    rebar_sizes = list(rebar_diameters.keys())
+    default_bar_index = rebar_sizes.index('#11')
+
     st.subheader("Bot Reinf")
     col_bottom1, col_bottom2 = st.columns(2)
     with col_bottom1:
-        bar_size_bottom = st.selectbox("Bar size", list(rebar_diameters.keys()), key='bar_size_bottom')
-        num_bars_bottom = st.number_input("# bars", min_value=0, value=2, step=1, key='num_bars_bottom')
+        bar_size_bottom = st.selectbox("Bar size", rebar_sizes, index=default_bar_index, key='bar_size_bottom')
+        num_bars_bottom = st.number_input("# bars", min_value=0, value=12, step=1, key='num_bars_bottom')
     with col_bottom2:
-        multi_layers_bottom = st.checkbox("Multiple layers", key='multi_bottom')
+        multi_layers_bottom = st.checkbox("Multiple layers", value=True, key='multi_bottom')
         if multi_layers_bottom:
-            num_layers_bottom = st.number_input("# of layers", min_value=2, value=2, step=1, key='layers_bottom')
-            spacing_bottom = st.number_input("C/C spacing (in)", min_value=0.0, value=2.0, step=0.25, key='spacing_bottom')
+            num_layers_bottom = st.number_input("# of layers", min_value=2, value=4, step=1, key='layers_bottom')
+            spacing_bottom = st.number_input("C/C spacing (in)", min_value=0.0, value=3.0, step=0.25, key='spacing_bottom')
         else:
             num_layers_bottom = 1
             spacing_bottom = 0.0
@@ -291,13 +294,13 @@ with col_left:
     st.subheader("Top Reinf")
     col_top1, col_top2 = st.columns(2)
     with col_top1:
-        bar_size_top = st.selectbox("Bar size", list(rebar_diameters.keys()), key='bar_size_top')
-        num_bars_top = st.number_input("# bars", min_value=0, value=2, step=1, key='num_bars_top')
+        bar_size_top = st.selectbox("Bar size", rebar_sizes, index=default_bar_index, key='bar_size_top')
+        num_bars_top = st.number_input("# bars", min_value=0, value=12, step=1, key='num_bars_top')
     with col_top2:
-        multi_layers_top = st.checkbox("Multiple layers", key='multi_top')
+        multi_layers_top = st.checkbox("Multiple layers", value=True, key='multi_top')
         if multi_layers_top:
             num_layers_top = st.number_input("# of layers", min_value=2, value=2, step=1, key='layers_top')
-            spacing_top = st.number_input("C/C spacing (in)", min_value=0.0, value=2.0, step=0.25, key='spacing_top')
+            spacing_top = st.number_input("C/C spacing (in)", min_value=0.0, value=3.0, step=0.25, key='spacing_top')
         else:
             num_layers_top = 1
             spacing_top = 0.0
