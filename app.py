@@ -177,9 +177,11 @@ def compute_phi_mn(fc, fy, b, d, As, As_prime, d_prime):
     
     C_conc = 0.85 * fc * b * a
     C_steel = As_prime * fs_prime
-    Mn = C_conc * (d - a / 2) + C_steel * (d - d_prime)
-    phi_mn = phi * Mn
-    
+    Mn_kip_in = C_conc * (d - a / 2) + C_steel * (d - d_prime)
+    phi_mn_kip_in = phi * Mn_kip_in
+    Mn = Mn_kip_in / 12.0  # report Mn in kip-ft
+    phi_mn = phi_mn_kip_in / 12.0  # report φMn in kip-ft
+
     return phi, Mn, phi_mn, extra_warning
 
 # Function to visualize the cross-section
@@ -349,8 +351,8 @@ with col_right:
             d_prime_val = d_prime if d_prime is not None else 0
             phi, Mn, phi_mn, extra_warning = compute_phi_mn(fc, fy, b, d, As_bottom, As_prime, d_prime_val)
             st.write(f"Phi = {phi:.2f}")
-            st.write(f"Mn = {Mn:.2f} in-kip")
-            st.write(f"Phi Mn = {phi_mn:.2f} in-kip")
+            st.write(f"Mn = {Mn:.2f} kip-ft")
+            st.write(f"Phi Mn = {phi_mn:.2f} kip-ft")
             if extra_warning:
                 st.warning(extra_warning)
         else:
