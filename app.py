@@ -123,6 +123,50 @@ def check_validity(b, h, fc, fy, layers, side_cover, bottom_cover, top_cover):
     
     return warnings, rho, rho_prime, As_bottom, As_top, d, centroid_top
 
+# Function to compute Phi Vn
+def compute_phi_vn(fc, fy, b, d, Av, s):
+    """
+    Calculate shear capacity per ACI 318
+    fc, fy in ksi
+    b, d in inches
+    Av = area of shear reinforcement (in^2)
+    s = spacing of stirrups (in)
+    Returns phi, Vc, Vs, Vn, phi_vn in kips
+    """
+    # Convert to psi for calculation
+    fc_psi = fc * 1000
+    fy_psi = fy * 1000
+
+    # Concrete shear strength (ACI 22.5.5.1)
+    # Vc = 2λ√(f'c)bw*d, λ=1.0 for normal weight concrete
+    lambda_factor = 1.0
+    Vc_pounds = 2 * lambda_factor * math.sqrt(fc_psi) * b * d
+    Vc = Vc_pounds / 1000  # Convert to kips
+
+    # Stirrup shear strength (ACI 22.5.10.5.3)
+    # Vs = Av*fy*d/s
+    if s > 0:
+        Vs_pounds = (Av * fy_psi * d) / s
+        Vs = Vs_pounds / 1000  # Convert to kips
+    else:
+        Vs = 0
+
+    # Check maximum Vs (ACI 22.5.1.2)
+    Vs_max_pounds = 8 * math.sqrt(fc_psi) * b * d
+    Vs_max = Vs_max_pounds / 1000
+
+    warning = ""
+    if Vs > Vs_max:
+        warning = f"Vs exceeds maximum allowed (Vs_max = {Vs_max:.2f} kips)"
+        Vs = Vs_max
+
+    # Nominal and design shear strength
+    Vn = Vc + Vs
+    phi = 0.75  # Shear reduction factor (ACI 21.2.1)
+    phi_vn = phi * Vn
+
+    return phi, Vc, Vs, Vn, phi_vn, warning
+
 # Function to compute Phi Mn
 def compute_phi_mn(fc, fy, b, d, As, As_prime, d_prime):
     beta1 = 0.85 if fc <= 4 else max(0.65, 0.85 - 0.05 * (fc - 4))
@@ -306,6 +350,14 @@ with col_left:
             spacing_top = 0.0
         start_dist_top = st.number_input("Top to center bar", min_value=0.0, value=2.5, step=0.25, key='start_top')
 
+    st.subheader("Shear Reinf")
+    col_shear1, col_shear2 = st.columns(2)
+    with col_shear1:
+        stirrup_size = st.selectbox("Stirrup size", rebar_sizes, index=rebar_sizes.index('#4'), key='stirrup_size')
+        num_legs = st.number_input("# of legs", min_value=2, value=2, step=1, key='num_legs')
+    with col_shear2:
+        stirrup_spacing = st.number_input("Spacing s (in)", min_value=1.0, value=12.0, step=0.5, key='stirrup_spacing')
+
 # Generate layers
 layers = []
 
@@ -360,3 +412,18 @@ with col_right:
                 st.warning(extra_warning)
         else:
             st.write("No bottom reinforcement.")
+
+    if st.button("Calculate Phi*Vn"):
+        if d > 0:
+            # Calculate Av = number of legs × area of one stirrup bar
+            Av = num_legs * bar_area(stirrup_size)
+            phi, Vc, Vs, Vn, phi_vn, warning = compute_phi_vn(fc, fy, b, d, Av, stirrup_spacing)
+            st.write(f"Phi = {phi:.2f}")
+            st.write(f"Vc = {Vc:.2f} kips")
+            st.write(f"Vs = {Vs:.2f} kips")
+            st.write(f"Vn = {Vn:.2f} kips")
+            st.write(f"Phi Vn = {phi_vn:.2f} kips")
+            if warning:
+                st.warning(warning)
+        else:
+            st.write("No effective depth calculated.")
